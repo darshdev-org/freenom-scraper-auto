@@ -44,7 +44,6 @@ app.get('/deleteall', async (req, res) => {
 const port = process.env.PORT || 80;
 app.listen(port, () => {
   console.log(`App running on port ${port}...`);
-  console.log(process.env);
   https.get('https://freenom-nameservers.herokuapp.com/');
   setInterval(() => https.get('https://freenom-nameservers.herokuapp.com/'), 15 * 60 * 1000);
 });

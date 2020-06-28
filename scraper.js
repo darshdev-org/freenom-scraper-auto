@@ -44,9 +44,6 @@ module.exports = async function(accounts, ns1, ns2) {
     });
 
     const page = await browser.newPage();
-    await wait(1000);
-    await page.goto(loginPage);
-    await wait(1000);
 
     await Promise.all([
       page.setUserAgent(
@@ -80,23 +77,18 @@ module.exports = async function(accounts, ns1, ns2) {
 
       await page.goto(domainsPage, { waitUntil: 'networkidle2' });
 
-      await wait(2500);
-
-      page.select('select[name="itemlimit"]', 'all');
-
+      await page.click('select[name=itemlimit]');
+      for (let i = 0; i < 4; i++) await page.keyboard.press('ArrowDown');
+      await page.keyboard.press('Enter');
       await wait();
 
-      // Scrape all the domain this account has
-      let { domains, ids } = await page.evaluate(() => {
-        return {
-          domains: Array.from(document.querySelectorAll('td.second a')).map(td =>
-            td.getAttribute('href')
-          ),
-          ids: Array.from(document.querySelectorAll('td.seventh a')).map(
-            td => td.getAttribute('href').match(/id=(\d+)/i)[1]
-          )
-        };
-      });
+      const domains = await page.$$eval('td.second a', els =>
+        els.map(td => td.getAttribute('href'))
+      );
+
+      const ids = await page.$$eval('td.seventh a', els =>
+        els.map(td => td.getAttribute('href').match(/id=(\d+)/i)[1])
+      );
 
       if (!Array.isArray(domains) && domains.length > 1)
         console.log("couldn't scrape domains for", JSON.stringify(account));
@@ -114,17 +106,15 @@ module.exports = async function(accounts, ns1, ns2) {
       for (const id of ids) {
         console.log(`at id ${id}`);
 
-        await page.goto(editPage(id), {
-          waitUntil: 'networkidle2'
-        });
-
+        await page.goto(editPage(id), { waitUntil: 'networkidle2' });
+        await wait(1000);
         await page.click('#nsform p label:nth-child(2) input');
 
         await type(page, 'input#ns1', ns1);
         await type(page, 'input#ns2', ns2);
 
         await page.click('input[value="Change Nameservers"]');
-        await wait();
+        await wait(1000);
       }
 
       // delete all cookies to relogin
@@ -152,7 +142,6 @@ module.exports = async function(accounts, ns1, ns2) {
 
     console.log('done scraping & changing nameservers!');
   } catch (error) {
-    debugger;
     console.error(error);
   }
 };

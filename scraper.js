@@ -69,7 +69,10 @@ module.exports = async function(accounts, ns1, ns2) {
 
       await page.goto(domainsPage, { waitUntil: 'networkidle2' });
 
-      page.select('.resultsPerPage select', 'all');
+      await wait(2500);
+
+      page.select('select[name="itemlimit"]', 'all');
+
       await wait();
 
       // Scrape all the domain this account has

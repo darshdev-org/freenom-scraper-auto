@@ -77,6 +77,7 @@ module.exports = async function(accounts, ns1, ns2) {
 
       await page.goto(domainsPage, { waitUntil: 'networkidle2' });
 
+      await page.waitForSelector('select[name=itemlimit]');
       await page.click('select[name=itemlimit]');
       for (let i = 0; i < 4; i++) await page.keyboard.press('ArrowDown');
       await page.keyboard.press('Enter');

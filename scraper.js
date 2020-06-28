@@ -7,7 +7,7 @@ const domainsPage = 'https://my.freenom.com/clientarea.php?action=domains';
 const loginPage = 'https://my.freenom.com/clientarea.php';
 const editPage = id => `https://my.freenom.com/clientarea.php?action=domaindetails&id=${id}#tab3`;
 
-async function wait(time = 3000) {
+async function wait(time = 3500) {
   await new Promise((res, rej) => setTimeout(res, time));
 }
 
@@ -36,7 +36,7 @@ module.exports = async function(accounts, ns1, ns2) {
     const browser = await puppeteer.launch({
       args: ['--no-sandbox'],
       ignoreHTTPSErrors: true,
-      timeout: 20000,
+      timeout: 50000,
       handleSIGINT: true,
       handleSIGTERM: true,
       handleSIGHUP: true,

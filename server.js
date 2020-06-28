@@ -1,6 +1,20 @@
 const express = require('express');
-const consola = require('consola');
+const path = require('path');
+const fs = require('fs');
 const scraper = require('./scraper');
+
+function isRunning(bool = true, options = 'utf8') {
+  return new Promise((resolve, reject) => {
+    fs.writeFile(path.join(__dirname, `public/isrunning.txt`), bool * 1, options, error => {
+      if (error) {
+        reject(error);
+      } else {
+        resolve();
+      }
+    });
+  });
+}
+
 const app = express();
 
 app.use(express.static('public'));
@@ -8,19 +22,26 @@ app.use(express.json());
 
 app.post('/', async (req, res) => {
   const { accounts, ns1, ns2 } = req.body;
-  scraper(accounts, ns1, ns2);
   res.end();
+
+  await isRunning();
+  await scraper(accounts, ns1, ns2);
+  await isRunning(false);
+});
+
+app.get('/deleteall', async (req, res) => {
+  try {
+    res.end();
+
+    fs.unlink(path.join(__dirname, 'public/data.txt'), () => {});
+    fs.unlink(path.join(__dirname, 'public/data.csv'), () => {});
+    fs.unlink(path.join(__dirname, 'public/data.json'), () => {});
+  } catch (error) {
+    console.error(error);
+  }
 });
 
 const port = process.env.PORT || 1212;
 app.listen(port, () => {
-  console.clear();
-
-  console.log = consola.info;
-  console.error = consola.error;
-  console.warn = consola.warn;
-  console.success = consola.success;
-  console.ready = consola.ready;
-
   console.log(`App running on port ${port}...`);
 });

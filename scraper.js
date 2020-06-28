@@ -22,7 +22,7 @@ function writeFilePromise(filename, data, options = 'utf8') {
       if (error) {
         reject(error);
       } else {
-        resolve(data);
+        resolve();
       }
     });
   });
@@ -35,26 +35,37 @@ module.exports = async function(accounts, ns1, ns2) {
 
     const browser = await puppeteer.launch({
       args: ['--no-sandbox'],
-      // ignoreHTTPSErrors: true,
-      timeout: 20000
-      // handleSIGINT: true,
-      // handleSIGTERM: true,
-      // handleSIGHUP: true,
-      // defaultViewport: { width: 1920, height: 1080 }
+      ignoreHTTPSErrors: true,
+      timeout: 20000,
+      handleSIGINT: true,
+      handleSIGTERM: true,
+      handleSIGHUP: true,
+      defaultViewport: { width: 1920, height: 1080 }
     });
 
     const page = await browser.newPage();
+    await wait(1000);
+    await page.goto(loginPage);
+    await wait(1000);
 
     await Promise.all([
       page.setUserAgent(
         'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/83.0.4103.106 Safari/537.36'
       ),
-      page.setExtraHTTPHeaders({ 'Accept-Language': 'en-GB,en-US;q=0.9,en;q=0.8' })
+      page.setExtraHTTPHeaders({ 'Accept-Language': 'en-GB,en-US;q=0.9,en;q=0.8' }),
+      page.setRequestInterception(true)
     ]);
+
+    page.on('request', request => {
+      if (['image', 'stylesheet', 'font'].indexOf(request.resourceType()) !== -1)
+        return request.abort();
+
+      request.continue();
+    });
 
     for (const account of accounts) {
       await page.goto(loginPage, { waitUntil: 'networkidle2' });
-      console.success('scraping:', account[0]);
+      console.log('scraping:', account[0]);
 
       // entring the username & password
       await type(page, '#username', account[0]);
@@ -141,6 +152,7 @@ module.exports = async function(accounts, ns1, ns2) {
 
     console.log('done scraping & changing nameservers!');
   } catch (error) {
+    debugger;
     console.error(error);
   }
 };

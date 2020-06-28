@@ -8,7 +8,7 @@ function showInfo(text, isError = false) {
   }, 5000);
 }
 
-async function getStatus() {
+(async function() {
   const status = (await axios('/status.json')).data;
   if (!status.lastUpdate) return;
 
@@ -22,15 +22,24 @@ async function getStatus() {
       <p>Last Updated: ${lastUpdate}</p>
 
       <div class="col-3">
-        <a href="/data.txt" class="btn">Text</a>
-        <a href="/data.json" class="btn">Json</a>
-        <a href="/data.CSV" class="btn">Csv</a>
+        <a href="/data.txt" target="_blank" class="btn">Text</a>
+        <a href="/data.json" target="_blank" class="btn">Json</a>
+        <a href="/data.CSV" target="_blank" class="btn">Csv</a>
       </div>
+      <div class="deleteall" onclick="deleteall()")>Delete All Files!</div>
     </div>`
   );
-}
+})();
 
-getStatus();
+(async function() {
+  const isRunning = (await axios('/isrunning.txt')).data;
+  console.log('is Running:', isRunning * 1);
+
+  if (isRunning * 1) {
+    document.querySelector('.isrunning').textContent = 'Process Running Right Now!';
+    document.querySelector('.isrunning').style.color = 'var(--color-tertiary)';
+  }
+})();
 
 document.querySelector('form').addEventListener('submit', async e => {
   e.preventDefault();
@@ -61,3 +70,8 @@ document.querySelector('form').addEventListener('submit', async e => {
 
   showInfo('Request Sent Successfully!');
 });
+
+async function deleteall() {
+  const res = await axios('/deleteall');
+  if (res.status < 400) showInfo('All Files Are Being Deleted!');
+}

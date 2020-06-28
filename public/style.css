@@ -31,7 +31,7 @@ body {
 
   color: #fff;
   user-select: none;
-  margin: 0 15rem;
+  margin: 0 5rem;
   padding-bottom: 5rem;
 }
 
@@ -47,11 +47,14 @@ a:visited {
   color: currentcolor;
 }
 
+header {
+  margin: 5rem 0;
+}
+
 h1 {
   text-transform: capitalize;
   font-weight: 500;
   text-align: center;
-  margin: 5rem 0;
 }
 
 label {
@@ -153,4 +156,30 @@ button:active {
 
   background-color: #2389ff;
   padding: 0.8rem;
+}
+
+.deleteall {
+  text-align: center;
+  font-size: 110%;
+
+  background-color: #b92b26;
+  padding: 0.8rem;
+  margin-top: 1.5rem;
+}
+
+.deleteall:active {
+  background-color: #b92b26d2;
+  transform: scale(0.995);
+}
+
+.isrunning {
+  text-align: center;
+  font-weight: 400;
+  color: rgba(255, 255, 255, 0.2);
+  text-transform: capitalize;
+}
+
+.isrunning::after,
+.isrunning::before {
+  content: '  ---------------  ';
 }

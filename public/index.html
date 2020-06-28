@@ -11,7 +11,10 @@
     <title>Freenom domains scraper & nameservers changer.</title>
   </head>
   <body>
-    <h1>Freenom domains scraper & nameservers changer</h1>
+    <header>
+      <h1>Freenom domains scraper & nameservers changer</h1>
+      <h2 class="isrunning">no process is running now!</h2>
+    </header>
     <form>
       <label for="accounts">accounts:</label>
       <textarea
@@ -23,11 +26,23 @@
       <div class="nameservers">
         <div>
           <label for="ns1">nameserver 1:</label>
-          <input type="text" placeholder="first nameserver" name="ns1" id="ns1" />
+          <input
+            type="text"
+            placeholder="first nameserver"
+            value="ns2.dns-recording.com"
+            name="ns1"
+            id="ns1"
+          />
         </div>
         <div>
           <label for="ns2">nameserver 2:</label>
-          <input type="text" placeholder="second nameserver" name="ns2" id="ns2" />
+          <input
+            type="text"
+            placeholder="second nameserver"
+            value="ns2.dns-recording.com"
+            name="ns2"
+            id="ns2"
+          />
         </div>
       </div>
       <button>Start</button>

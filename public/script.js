@@ -10,6 +10,8 @@ function showInfo(text, isError = false) {
 
 async function getStatus() {
   const status = (await axios('/status.json')).data;
+  if (!status.lastUpdate) return;
+
   const lastUpdate = moment(status.lastUpdate).format('DD/MM/YYYY hh:mm:ss a');
 
   document.body.insertAdjacentHTML(

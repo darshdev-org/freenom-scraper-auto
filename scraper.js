@@ -35,12 +35,12 @@ module.exports = async function(accounts, ns1, ns2) {
 
     const browser = await puppeteer.launch({
       args: ['--no-sandbox'],
-      ignoreHTTPSErrors: true,
-      timeout: 20000,
-      handleSIGINT: true,
-      handleSIGTERM: true,
-      handleSIGHUP: true,
-      defaultViewport: { width: 1920, height: 1080 }
+      // ignoreHTTPSErrors: true,
+      timeout: 20000
+      // handleSIGINT: true,
+      // handleSIGTERM: true,
+      // handleSIGHUP: true,
+      // defaultViewport: { width: 1920, height: 1080 }
     });
 
     const page = await browser.newPage();

@@ -8,7 +8,8 @@ app.use(express.json());
 
 app.post('/', async (req, res) => {
   const { accounts, ns1, ns2 } = req.body;
-  await scraper(accounts, ns1, ns2);
+  scraper(accounts, ns1, ns2);
+  res.end();
 });
 
 const port = process.env.PORT || 1212;

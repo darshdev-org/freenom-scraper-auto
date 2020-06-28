@@ -5,7 +5,7 @@ function showInfo(text, isError = false) {
 
   setTimeout(() => {
     el.style.display = 'none';
-  }, 3000);
+  }, 5000);
 }
 
 async function getStatus() {

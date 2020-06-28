@@ -34,6 +34,7 @@ module.exports = async function(accounts, ns1, ns2) {
     let allDomains = [];
 
     const browser = await puppeteer.launch({
+      args: ['--no-sandbox'],
       ignoreHTTPSErrors: true,
       timeout: 20000,
       handleSIGINT: true,

@@ -1,0 +1,6 @@
+{
+  "trycatch": {
+    "prefix": "try",
+    "body": ["try{", "\t$0", "}catch(error){console.error(error);}"]
+  }
+}

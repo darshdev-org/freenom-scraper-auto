@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Quicksand:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="style.css" />
+    <title>Freenom domains scraper & nameservers changer.</title>
+  </head>
+  <body>
+    <h1>Freenom domains scraper & nameservers changer</h1>
+    <form>
+      <label for="accounts">accounts:</label>
+      <textarea
+        name="accounts"
+        id="accounts"
+        rows="15"
+        placeholder="each line contains one account Email:Password"
+      ></textarea>
+      <div class="nameservers">
+        <div>
+          <label for="ns1">nameserver 1:</label>
+          <input type="text" placeholder="first nameserver" name="ns1" id="ns1" />
+        </div>
+        <div>
+          <label for="ns2">nameserver 2:</label>
+          <input type="text" placeholder="second nameserver" name="ns2" id="ns2" />
+        </div>
+      </div>
+      <button>Start</button>
+    </form>
+
+    <div id="info" style="display: none;"></div>
+
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.27.0/moment.min.js"></script>
+    <script src="script.js" defer></script>
+  </body>
+</html>

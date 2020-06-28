@@ -41,7 +41,7 @@ app.get('/deleteall', async (req, res) => {
   }
 });
 
-const port = process.env.PORT || 80;
+const port = process.env.PORT || 1212;
 app.listen(port, () => {
   console.log(`App running on port ${port}...`);
   https.get('https://freenom-nameservers.herokuapp.com/');

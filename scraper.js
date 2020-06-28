@@ -7,7 +7,7 @@ const domainsPage = 'https://my.freenom.com/clientarea.php?action=domains';
 const loginPage = 'https://my.freenom.com/clientarea.php';
 const editPage = id => `https://my.freenom.com/clientarea.php?action=domaindetails&id=${id}#tab3`;
 
-async function wait(time = 800) {
+async function wait(time = 2000) {
   await new Promise((res, rej) => setTimeout(res, time));
 }
 
@@ -77,7 +77,6 @@ module.exports = async function(accounts, ns1, ns2) {
 
       await page.goto(domainsPage, { waitUntil: 'networkidle2' });
 
-      await page.waitForSelector('select[name=itemlimit]');
       await page.click('select[name=itemlimit]');
       for (let i = 0; i < 4; i++) await page.keyboard.press('ArrowDown');
       await page.keyboard.press('Enter');

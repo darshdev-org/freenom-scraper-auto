@@ -7,7 +7,7 @@ const domainsPage = 'https://my.freenom.com/clientarea.php?action=domains';
 const loginPage = 'https://my.freenom.com/clientarea.php';
 const editPage = id => `https://my.freenom.com/clientarea.php?action=domaindetails&id=${id}#tab3`;
 
-async function wait(time = 200) {
+async function wait(time = 800) {
   await new Promise((res, rej) => setTimeout(res, time));
 }
 

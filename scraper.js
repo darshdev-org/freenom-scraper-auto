@@ -105,7 +105,7 @@ module.exports = async function(accounts, ns1, ns2) {
       // edit to nameservers
       for (const id of ids) {
         console.log(`at id ${id}`);
-
+        
         await page.goto(editPage(id), { waitUntil: 'networkidle2' });
         await wait(1000);
         await page.click('#nsform p label:nth-child(2) input');

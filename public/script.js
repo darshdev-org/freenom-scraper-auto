@@ -31,19 +31,25 @@ function showInfo(text, isError = false) {
   );
 })();
 
-(async function() {
+async function isRunningRefresh() {
   const isRunning = (await axios('/isrunning.txt')).data;
-  console.log('is Running:', isRunning * 1);
 
+  const element = document.querySelector('.isrunning');
   if (isRunning * 1) {
-    document.querySelector('.isrunning').textContent = 'Process Running Right Now!';
-    document.querySelector('.isrunning').style.color = 'var(--color-tertiary)';
+    element.textContent = 'A Process Is Running Now!';
+    element.style.color = 'var(--color-tertiary)';
+  } else {
+    element.textContent = 'No Process Is Running Now!';
+    element.style.color = '#ffffff33';
   }
-})();
+}
+
+isRunningRefresh();
 
 document.querySelector('form').addEventListener('submit', async e => {
   e.preventDefault();
-
+  isRunningRefresh();
+  setInterval(isRunningRefresh, 2000);
   let error = [];
   const value = index => e.srcElement[index].value;
   const accounts = value(0)
@@ -74,4 +80,5 @@ document.querySelector('form').addEventListener('submit', async e => {
 async function deleteall() {
   const res = await axios('/deleteall');
   if (res.status < 400) showInfo('All Files Are Being Deleted!');
+  location.reload();
 }

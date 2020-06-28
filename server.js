@@ -33,9 +33,13 @@ app.get('/deleteall', async (req, res) => {
   try {
     res.end();
 
-    fs.unlink(path.join(__dirname, 'public/data.txt'), () => {});
-    fs.unlink(path.join(__dirname, 'public/data.csv'), () => {});
-    fs.unlink(path.join(__dirname, 'public/data.json'), () => {});
+    [
+      'public/data.txt',
+      'public/data.csv',
+      'public/data.json',
+      'public/status.json',
+      'public/isrunning.txt'
+    ].forEach(file => fs.unlink(path.join(__dirname, file), () => {}));
   } catch (error) {
     console.error(error);
   }

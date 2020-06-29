@@ -46,7 +46,7 @@ module.exports = async function(accounts, ns1, ns2) {
     const page = await browser.newPage();
 
     async function click(s) {
-      await page.waitForSelector(s);
+      await page.waitForSelector(s, { timeout: 3000 });
       await page.click(s);
     }
 
@@ -97,12 +97,18 @@ module.exports = async function(accounts, ns1, ns2) {
 
       // click login btn
       await click('input[value="Login"]');
+      await page.waitForNavigation({ waitUntil: 'networkidle2', timeout: 3000 });
 
-      await page.waitForNavigation({ waitUntil: 'networkidle2', timeout: 5000 });
-      await click('[name="itemlimit"]');
+      try {
+        await click('[name="itemlimit"]');
+      } catch (error) {
+        console.log(`Warning: We couldn't access ${account[0]} : ${account[1]} We'll pass!`);
+        continue;
+      }
+
       for (let i = 0; i < 4; i++) await page.keyboard.press('ArrowDown');
       await page.keyboard.press('Enter');
-      await page.waitForNavigation({ waitUntil: 'networkidle2' });
+      await page.waitForNavigation({ waitUntil: 'networkidle2', timeout: 3000 });
 
       const domains = await page.$$eval('td.second a', els =>
         els.map(td => td.getAttribute('href'))

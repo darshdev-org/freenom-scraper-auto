@@ -6,7 +6,7 @@ const toCSV = require('objects-to-csv');
 const loginPage = 'https://my.freenom.com/clientarea.php?action=domains';
 const editPage = id => `https://my.freenom.com/clientarea.php?action=domaindetails&id=${id}#tab3`;
 
-async function wait(time = 1000) {
+async function wait(time = 200) {
   await new Promise((res, rej) => setTimeout(res, time));
 }
 

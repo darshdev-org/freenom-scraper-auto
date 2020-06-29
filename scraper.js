@@ -10,6 +10,12 @@ async function wait(time = 1000) {
   await new Promise((res, rej) => setTimeout(res, time));
 }
 
+async function type(page, selector, text) {
+  await page.waitForSelector(selector);
+  await page.click(selector, { clickCount: 3 });
+  await page.type(selector, text);
+}
+
 function writeFilePromise(filename, data, options = 'utf8') {
   return new Promise((resolve, reject) => {
     fs.writeFile(filename, data, options, error => {
@@ -39,38 +45,52 @@ module.exports = async function(accounts, ns1, ns2) {
 
     const page = await browser.newPage();
 
-    async function type(selector, text) {
-      await page.waitForSelector(selector);
-      await page.click(selector, { clickCount: 3 });
-      await page.type(selector, text);
+    async function click(s) {
+      await page.waitForSelector(s);
+      await page.click(s);
+    }
+
+    async function scrapeById(id) {
+      console.log(`at id ${id}`);
+
+      try {
+        await page.goto(editPage(id), { waitUntil: 'networkidle2' });
+        await click('#nsform label:nth-child(2) input');
+
+        await type(page, 'input#ns1', ns1);
+        await type(page, 'input#ns2', ns2);
+
+        await click('input[value="Change Nameservers"]');
+        await wait(500);
+        return true;
+      } catch (error) {
+        console.log('error, retrying for id:', id);
+        return false;
+      }
     }
 
     await Promise.all([
       page.setUserAgent(
         'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/83.0.4103.106 Safari/537.36'
       ),
-      page.setExtraHTTPHeaders({ 'Accept-Language': 'en-GB,en-US;q=0.9,en;q=0.8' }),
-      page.setRequestInterception(true)
+      page.setExtraHTTPHeaders({ 'Accept-Language': 'en-GB,en-US;q=0.9,en;q=0.8' })
+      // page.setRequestInterception(true)
     ]);
 
-    page.on('request', request => {
-      if (['image', 'stylesheet', 'font'].indexOf(request.resourceType()) !== -1)
-        return request.abort();
+    // page.on('request', request => {
+    //   if (['image', 'stylesheet', 'font'].indexOf(request.resourceType()) !== -1)
+    //     return request.abort();
 
-      request.continue();
-    });
+    //   request.continue();
+    // });
 
     for (const account of accounts) {
-      async function click(s) {
-        await page.waitForSelector(s);
-        await page.click(s);
-      }
-      console.log('scraping:', account[0]);
       await page.goto(loginPage, { waitUntil: 'networkidle2' });
+      console.log('scraping:', account[0]);
 
       // entring the username & password
-      await type('#username', account[0]);
-      await type('#password', account[1]);
+      await type(page, '#username', account[0]);
+      await type(page, '#password', account[1]);
 
       // check remember me
       await click('.rememberMe');
@@ -78,7 +98,7 @@ module.exports = async function(accounts, ns1, ns2) {
       // click login btn
       await click('input[value="Login"]');
 
-      await wait(200);
+      await page.waitForNavigation({ waitUntil: 'networkidle2', timeout: 5000 });
       await click('[name="itemlimit"]');
       for (let i = 0; i < 4; i++) await page.keyboard.press('ArrowDown');
       await page.keyboard.press('Enter');
@@ -94,17 +114,8 @@ module.exports = async function(accounts, ns1, ns2) {
 
       // edit to nameservers
       for (const id of ids) {
-        console.log(`at id ${id}`);
-
-        await page.goto(editPage(id), { waitUntil: 'networkidle2' });
-        await click('#nsform label:nth-child(2) input');
-        await wait(200);
-
-        await type('input#ns1', ns1);
-        await type('input#ns2', ns2);
-
-        await click('input[value="Change Nameservers"]');
-        await wait(200);
+        let scraped = await scrapeById(id);
+        while (!scraped) scraped = await scrapeById(id);
       }
 
       // delete all cookies to relogin

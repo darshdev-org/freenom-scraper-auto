@@ -10,12 +10,6 @@ async function wait(time = 1000) {
   await new Promise((res, rej) => setTimeout(res, time));
 }
 
-async function type(page, selector, text) {
-  await page.waitForSelector(selector);
-  await page.click(selector, { clickCount: 3 });
-  await page.type(selector, text);
-}
-
 function writeFilePromise(filename, data, options = 'utf8') {
   return new Promise((resolve, reject) => {
     fs.writeFile(filename, data, options, error => {
@@ -35,6 +29,7 @@ module.exports = async function(accounts, ns1, ns2) {
 
     const browser = await puppeteer.launch({
       args: ['--no-sandbox'],
+      headless: false,
       ignoreHTTPSErrors: true,
       timeout: 15000,
       handleSIGINT: true,
@@ -45,13 +40,19 @@ module.exports = async function(accounts, ns1, ns2) {
 
     const page = await browser.newPage();
 
-    await Promise.all([
-      page.setUserAgent(
-        'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/83.0.4103.106 Safari/537.36'
-      ),
-      page.setExtraHTTPHeaders({ 'Accept-Language': 'en-GB,en-US;q=0.9,en;q=0.8' })
-      // page.setRequestInterception(true)
-    ]);
+    async function type(selector, text) {
+      await page.waitForSelector(selector);
+      await page.click(selector, { clickCount: 3 });
+      await page.type(selector, text);
+    }
+
+    // await Promise.all([
+    //   page.setUserAgent(
+    //     'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/83.0.4103.106 Safari/537.36'
+    //   ),
+    //   page.setExtraHTTPHeaders({ 'Accept-Language': 'en-GB,en-US;q=0.9,en;q=0.8' }),
+    //   page.setRequestInterception(true)
+    // ]);
 
     // page.on('request', request => {
     //   if (['image', 'stylesheet', 'font'].indexOf(request.resourceType()) !== -1)
@@ -65,13 +66,12 @@ module.exports = async function(accounts, ns1, ns2) {
         await page.waitForSelector(s);
         await page.click(s);
       }
-
-      await page.goto(loginPage, { waitUntil: 'networkidle2' });
       console.log('scraping:', account[0]);
+      await page.goto(loginPage, { waitUntil: 'networkidle2' });
 
       // entring the username & password
-      await type(page, '#username', account[0]);
-      await type(page, '#password', account[1]);
+      await type('#username', account[0]);
+      await type('#password', account[1]);
 
       // check remember me
       await click('.rememberMe');
@@ -98,13 +98,14 @@ module.exports = async function(accounts, ns1, ns2) {
         console.log(`at id ${id}`);
 
         await page.goto(editPage(id), { waitUntil: 'networkidle2' });
-        await click('#nsform p label:nth-child(2) input');
+        await click('#nsform label:nth-child(2) input');
+        await wait(200);
 
-        await type(page, 'input#ns1', ns1);
-        await type(page, 'input#ns2', ns2);
+        await type('input#ns1', ns1);
+        await type('input#ns2', ns2);
 
         await click('input[value="Change Nameservers"]');
-        await wait(400);
+        await wait(200);
       }
 
       // delete all cookies to relogin

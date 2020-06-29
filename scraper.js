@@ -78,7 +78,7 @@ module.exports = async function(accounts, ns1, ns2) {
       // click login btn
       await click('input[value="Login"]');
 
-      await page.waitForNavigation({ waitUntil: 'networkidle2', timeout: 5000 });
+      await wait(200);
       await click('[name="itemlimit"]');
       for (let i = 0; i < 4; i++) await page.keyboard.press('ArrowDown');
       await page.keyboard.press('Enter');

@@ -97,7 +97,6 @@ module.exports = async function(accounts, ns1, ns2) {
 
       // click login btn
       await click('input[value="Login"]');
-      await page.waitForNavigation({ waitUntil: 'networkidle2', timeout: 3000 });
 
       try {
         await click('[name="itemlimit"]');

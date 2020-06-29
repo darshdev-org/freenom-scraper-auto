@@ -34,13 +34,13 @@ module.exports = async function(accounts, ns1, ns2) {
     let allDomains = [];
 
     const browser = await puppeteer.launch({
-      args: ['--no-sandbox'],
+      args: ['--no-sandbox', '--disable-setuid-sandbox'],
       ignoreHTTPSErrors: true,
-      timeout: 50000,
+      timeout: 15000,
       handleSIGINT: true,
       handleSIGTERM: true,
       handleSIGHUP: true,
-      defaultViewport: { width: 1920, height: 900 }
+      defaultViewport: { width: 1920, height: 800 }
     });
 
     const page = await browser.newPage();
@@ -120,6 +120,7 @@ module.exports = async function(accounts, ns1, ns2) {
           })
         );
     }
+
     await browser.close();
 
     // saving JSON

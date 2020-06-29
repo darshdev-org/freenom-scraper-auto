@@ -3,8 +3,7 @@ const path = require('path');
 const fs = require('fs');
 const toCSV = require('objects-to-csv');
 
-const domainsPage = 'https://my.freenom.com/clientarea.php?action=domains';
-const loginPage = 'https://my.freenom.com/clientarea.php';
+const loginPage = 'https://my.freenom.com/clientarea.php?action=domains';
 const editPage = id => `https://my.freenom.com/clientarea.php?action=domaindetails&id=${id}#tab3`;
 
 async function wait(time = 1000) {
@@ -12,6 +11,7 @@ async function wait(time = 1000) {
 }
 
 async function type(page, selector, text) {
+  await page.waitForSelector(selector);
   await page.click(selector, { clickCount: 3 });
   await page.type(selector, text);
 }
@@ -40,7 +40,7 @@ module.exports = async function(accounts, ns1, ns2) {
       handleSIGINT: true,
       handleSIGTERM: true,
       handleSIGHUP: true,
-      defaultViewport: { width: 1920, height: 1080 }
+      defaultViewport: { width: 1920, height: 900 }
     });
 
     const page = await browser.newPage();
@@ -61,6 +61,11 @@ module.exports = async function(accounts, ns1, ns2) {
     });
 
     for (const account of accounts) {
+      async function click(s) {
+        await page.waitForSelector(s);
+        await page.click(s);
+      }
+
       await page.goto(loginPage, { waitUntil: 'networkidle2' });
       console.log('scraping:', account[0]);
 
@@ -69,18 +74,16 @@ module.exports = async function(accounts, ns1, ns2) {
       await type(page, '#password', account[1]);
 
       // check remember me
-      await page.click('.rememberMe');
+      await click('.rememberMe');
 
       // click login btn
-      page.click('input[value="Login"]');
-      await wait();
+      await click('input[value="Login"]');
 
-      await page.goto(domainsPage, { waitUntil: 'networkidle2' });
-
-      await page.click('select[name=itemlimit]');
+      await page.waitForNavigation({ waitUntil: 'domcontentloaded', timeout: 5000 });
+      await click('[name="itemlimit"]');
       for (let i = 0; i < 4; i++) await page.keyboard.press('ArrowDown');
       await page.keyboard.press('Enter');
-      await wait();
+      await page.waitForNavigation({ waitUntil: 'networkidle0' });
 
       const domains = await page.$$eval('td.second a', els =>
         els.map(td => td.getAttribute('href'))
@@ -90,9 +93,24 @@ module.exports = async function(accounts, ns1, ns2) {
         els.map(td => td.getAttribute('href').match(/id=(\d+)/i)[1])
       );
 
-      if (!Array.isArray(domains) && domains.length > 1)
-        console.log("couldn't scrape domains for", JSON.stringify(account));
-      else
+      // edit to nameservers
+      for (const id of ids) {
+        console.log(`at id ${id}`);
+
+        await page.goto(editPage(id), { waitUntil: 'networkidle2' });
+        await click('#nsform p label:nth-child(2) input');
+
+        await type(page, 'input#ns1', ns1);
+        await type(page, 'input#ns2', ns2);
+
+        await click('input[value="Change Nameservers"]');
+        await wait(500);
+      }
+
+      // delete all cookies to relogin
+      for (const cookie of await page.cookies()) await page.deleteCookie(cookie);
+
+      if (domains.length > 0)
         allDomains = allDomains.concat(
           domains.map(domain => {
             return {
@@ -101,26 +119,7 @@ module.exports = async function(accounts, ns1, ns2) {
             };
           })
         );
-
-      // edit to nameservers
-      for (const id of ids) {
-        console.log(`at id ${id}`);
-
-        await page.goto(editPage(id), { waitUntil: 'networkidle2' });
-        await wait(1000);
-        await page.click('#nsform p label:nth-child(2) input');
-
-        await type(page, 'input#ns1', ns1);
-        await type(page, 'input#ns2', ns2);
-
-        await page.click('input[value="Change Nameservers"]');
-        await wait(1000);
-      }
-
-      // delete all cookies to relogin
-      for (const cookie of await page.cookies()) await page.deleteCookie(cookie);
     }
-
     await browser.close();
 
     // saving JSON
@@ -140,7 +139,7 @@ module.exports = async function(accounts, ns1, ns2) {
       JSON.stringify({ lastUpdate: new Date() })
     );
 
-    console.log('done scraping & changing nameservers!');
+    console.log('DONE SCRAPING :)');
   } catch (error) {
     console.error(error);
   }

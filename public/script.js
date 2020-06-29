@@ -45,11 +45,11 @@ async function isRunningRefresh() {
 }
 
 isRunningRefresh();
+setInterval(isRunningRefresh, 3000);
 
 document.querySelector('form').addEventListener('submit', async e => {
   e.preventDefault();
-  isRunningRefresh();
-  setInterval(isRunningRefresh, 2000);
+
   let error = [];
   const value = index => e.srcElement[index].value;
   const accounts = value(0)
@@ -66,7 +66,8 @@ document.querySelector('form').addEventListener('submit', async e => {
     );
   if (!ns1 || !ns2) error.push('Both namservers one & two are required.');
 
-  if (error.length > 0) showInfo(error.join('<br>'), true);
+  if (error.length > 0) return showInfo(error.join('<br>'), true);
+  isRunningRefresh();
 
   axios.post('/', {
     accounts,

@@ -29,7 +29,6 @@ module.exports = async function(accounts, ns1, ns2) {
 
     const browser = await puppeteer.launch({
       args: ['--no-sandbox'],
-      headless: false,
       ignoreHTTPSErrors: true,
       timeout: 15000,
       handleSIGINT: true,
@@ -46,20 +45,20 @@ module.exports = async function(accounts, ns1, ns2) {
       await page.type(selector, text);
     }
 
-    // await Promise.all([
-    //   page.setUserAgent(
-    //     'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/83.0.4103.106 Safari/537.36'
-    //   ),
-    //   page.setExtraHTTPHeaders({ 'Accept-Language': 'en-GB,en-US;q=0.9,en;q=0.8' }),
-    //   page.setRequestInterception(true)
-    // ]);
+    await Promise.all([
+      page.setUserAgent(
+        'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/83.0.4103.106 Safari/537.36'
+      ),
+      page.setExtraHTTPHeaders({ 'Accept-Language': 'en-GB,en-US;q=0.9,en;q=0.8' }),
+      page.setRequestInterception(true)
+    ]);
 
-    // page.on('request', request => {
-    //   if (['image', 'stylesheet', 'font'].indexOf(request.resourceType()) !== -1)
-    //     return request.abort();
+    page.on('request', request => {
+      if (['image', 'stylesheet', 'font'].indexOf(request.resourceType()) !== -1)
+        return request.abort();
 
-    //   request.continue();
-    // });
+      request.continue();
+    });
 
     for (const account of accounts) {
       async function click(s) {

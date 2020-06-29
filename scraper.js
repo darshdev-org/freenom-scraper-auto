@@ -6,7 +6,7 @@ const toCSV = require('objects-to-csv');
 const loginPage = 'https://my.freenom.com/clientarea.php?action=domains';
 const editPage = id => `https://my.freenom.com/clientarea.php?action=domaindetails&id=${id}#tab3`;
 
-async function wait(time = 200) {
+async function wait(time = 1000) {
   await new Promise((res, rej) => setTimeout(res, time));
 }
 
@@ -34,13 +34,13 @@ module.exports = async function(accounts, ns1, ns2) {
     let allDomains = [];
 
     const browser = await puppeteer.launch({
-      args: ['--no-sandbox', '--disable-setuid-sandbox'],
+      args: ['--no-sandbox'],
       ignoreHTTPSErrors: true,
       timeout: 15000,
       handleSIGINT: true,
       handleSIGTERM: true,
       handleSIGHUP: true,
-      defaultViewport: { width: 1920, height: 800 }
+      defaultViewport: { width: 1920, height: 1080 }
     });
 
     const page = await browser.newPage();
@@ -49,16 +49,16 @@ module.exports = async function(accounts, ns1, ns2) {
       page.setUserAgent(
         'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/83.0.4103.106 Safari/537.36'
       ),
-      page.setExtraHTTPHeaders({ 'Accept-Language': 'en-GB,en-US;q=0.9,en;q=0.8' }),
-      page.setRequestInterception(true)
+      page.setExtraHTTPHeaders({ 'Accept-Language': 'en-GB,en-US;q=0.9,en;q=0.8' })
+      // page.setRequestInterception(true)
     ]);
 
-    page.on('request', request => {
-      if (['image', 'stylesheet', 'font'].indexOf(request.resourceType()) !== -1)
-        return request.abort();
+    // page.on('request', request => {
+    //   if (['image', 'stylesheet', 'font'].indexOf(request.resourceType()) !== -1)
+    //     return request.abort();
 
-      request.continue();
-    });
+    //   request.continue();
+    // });
 
     for (const account of accounts) {
       async function click(s) {
@@ -79,11 +79,11 @@ module.exports = async function(accounts, ns1, ns2) {
       // click login btn
       await click('input[value="Login"]');
 
-      await page.waitForNavigation({ waitUntil: 'domcontentloaded', timeout: 5000 });
+      await page.waitForNavigation({ waitUntil: 'networkidle2', timeout: 5000 });
       await click('[name="itemlimit"]');
       for (let i = 0; i < 4; i++) await page.keyboard.press('ArrowDown');
       await page.keyboard.press('Enter');
-      await page.waitForNavigation({ waitUntil: 'networkidle0' });
+      await page.waitForNavigation({ waitUntil: 'networkidle2' });
 
       const domains = await page.$$eval('td.second a', els =>
         els.map(td => td.getAttribute('href'))
@@ -104,7 +104,7 @@ module.exports = async function(accounts, ns1, ns2) {
         await type(page, 'input#ns2', ns2);
 
         await click('input[value="Change Nameservers"]');
-        await wait(500);
+        await wait(400);
       }
 
       // delete all cookies to relogin

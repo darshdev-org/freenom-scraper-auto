@@ -73,68 +73,68 @@ module.exports = async function(accounts, ns1, ns2) {
       page.setUserAgent(
         'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/83.0.4103.106 Safari/537.36'
       ),
-      page.setExtraHTTPHeaders({ 'Accept-Language': 'en-GB,en-US;q=0.9,en;q=0.8' })
-      // page.setRequestInterception(true)
+      page.setExtraHTTPHeaders({ 'Accept-Language': 'en-GB,en-US;q=0.9,en;q=0.8' }),
+      page.setRequestInterception(true)
     ]);
 
-    // page.on('request', request => {
-    //   if (['image', 'stylesheet', 'font'].indexOf(request.resourceType()) !== -1)
-    //     return request.abort();
+    page.on('request', request => {
+      if (['image', 'stylesheet', 'font'].indexOf(request.resourceType()) !== -1)
+        return request.abort();
 
-    //   request.continue();
-    // });
+      request.continue();
+    });
 
     for (const account of accounts) {
-      await page.goto(loginPage, { waitUntil: 'networkidle2' });
-      console.log('scraping:', account[0]);
-
-      // entring the username & password
-      await type(page, '#username', account[0]);
-      await type(page, '#password', account[1]);
-
-      // check remember me
-      await click('.rememberMe');
-
-      // click login btn
-      await click('input[value="Login"]');
-
       try {
+        await page.goto(loginPage, { waitUntil: 'networkidle2' });
+        console.log('scraping:', account[0]);
+
+        // entring the username & password
+        await type(page, '#username', account[0]);
+        await type(page, '#password', account[1]);
+
+        // check remember me
+        await click('.rememberMe');
+
+        // click login btn
+        await click('input[value="Login"]');
+
         await click('[name="itemlimit"]');
+
+        for (let i = 0; i < 4; i++) await page.keyboard.press('ArrowDown');
+        await page.keyboard.press('Enter');
+        await page.waitForNavigation({ waitUntil: 'networkidle2', timeout: 3000 });
+
+        const domains = await page.$$eval('td.second a', els =>
+          els.map(td => td.getAttribute('href'))
+        );
+
+        const ids = await page.$$eval('td.seventh a', els =>
+          els.map(td => td.getAttribute('href').match(/id=(\d+)/i)[1])
+        );
+
+        // edit to nameservers
+        for (const id of ids) {
+          let scraped = await scrapeById(id);
+          while (!scraped) scraped = await scrapeById(id);
+        }
+
+        // delete all cookies to relogin
+        for (const cookie of await page.cookies()) await page.deleteCookie(cookie);
+
+        if (domains.length > 0)
+          allDomains = allDomains.concat(
+            domains.map(domain => {
+              return {
+                domain,
+                account: account[0]
+              };
+            })
+          );
       } catch (error) {
         console.log(`Warning: We couldn't access ${account[0]} : ${account[1]} We'll pass!`);
         continue;
       }
-
-      for (let i = 0; i < 4; i++) await page.keyboard.press('ArrowDown');
-      await page.keyboard.press('Enter');
-      await page.waitForNavigation({ waitUntil: 'networkidle2', timeout: 3000 });
-
-      const domains = await page.$$eval('td.second a', els =>
-        els.map(td => td.getAttribute('href'))
-      );
-
-      const ids = await page.$$eval('td.seventh a', els =>
-        els.map(td => td.getAttribute('href').match(/id=(\d+)/i)[1])
-      );
-
-      // edit to nameservers
-      for (const id of ids) {
-        let scraped = await scrapeById(id);
-        while (!scraped) scraped = await scrapeById(id);
-      }
-
-      // delete all cookies to relogin
-      for (const cookie of await page.cookies()) await page.deleteCookie(cookie);
-
-      if (domains.length > 0)
-        allDomains = allDomains.concat(
-          domains.map(domain => {
-            return {
-              domain,
-              account: account[0]
-            };
-          })
-        );
     }
 
     await browser.close();

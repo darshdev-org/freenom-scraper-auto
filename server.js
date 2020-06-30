@@ -49,7 +49,4 @@ const port = process.env.PORT || 1212;
 app.listen(port, () => {
   console.clear();
   console.log(`App running on port ${port}...`);
-
-  https.get('https://freenom-nameservers.herokuapp.com/');
-  setInterval(() => https.get('https://freenom-nameservers.herokuapp.com/'), 15 * 60 * 1000);
 });

@@ -6,14 +6,20 @@ const toCSV = require('objects-to-csv');
 const loginPage = 'https://my.freenom.com/clientarea.php?action=domains';
 const editPage = id => `https://my.freenom.com/clientarea.php?action=domaindetails&id=${id}#tab3`;
 
-async function wait(time = 1000) {
+async function wait(time = 3500) {
   await new Promise((res, rej) => setTimeout(res, time));
 }
 
-async function type(page, selector, text) {
-  await page.waitForSelector(selector);
-  await page.click(selector, { clickCount: 3 });
-  await page.type(selector, text);
+async function type(page, selector, text, retried = 0) {
+  try {
+    await page.waitForSelector(selector, { timeout: 5000 });
+    await page.click(selector.trim() + ':not([disabled])', { clickCount: 3 });
+    await page.type(selector, text);
+  } catch {
+    if (retried === 1) return;
+    console.log(`couldn't type ${text} into ${selector}, trying once again...`);
+    await type(page, selector, text, 1);
+  }
 }
 
 function writeFilePromise(filename, data, options = 'utf8') {
@@ -45,9 +51,16 @@ module.exports = async function(accounts, ns1, ns2) {
 
     const page = await browser.newPage();
 
-    async function click(s) {
-      await page.waitForSelector(s, { timeout: 3000 });
-      await page.click(s);
+    async function click(selector, waitForNav = false, retried = 0) {
+      try {
+        await page.waitForSelector(selector, { timeout: 5000 });
+        await page.click(selector);
+        if (waitForNav) await page.waitForNavigation();
+      } catch (error) {
+        if (retried === 1) return;
+        console.log(`couldn't click ${selector}, trying once again...`);
+        await click(selector, waitForNav, 1);
+      }
     }
 
     async function scrapeById(id) {
@@ -60,7 +73,7 @@ module.exports = async function(accounts, ns1, ns2) {
         await type(page, 'input#ns1', ns1);
         await type(page, 'input#ns2', ns2);
 
-        await click('input[value="Change Nameservers"]');
+        await click('input.mediumBtn.primaryColor');
         await wait(500);
         return true;
       } catch (error) {
@@ -97,13 +110,18 @@ module.exports = async function(accounts, ns1, ns2) {
         await click('.rememberMe');
 
         // click login btn
-        await click('input[value="Login"]');
+        await click('input[value=Login]');
 
-        await click('[name="itemlimit"]');
+        try {
+          await click('[name=itemlimit]');
+        } catch (error) {
+          console.log(`Warning: We couldn't access ${account[0]} : ${account[1]} We'll pass!`);
+          continue;
+        }
 
         for (let i = 0; i < 4; i++) await page.keyboard.press('ArrowDown');
         await page.keyboard.press('Enter');
-        await page.waitForNavigation({ waitUntil: 'networkidle2', timeout: 3000 });
+        await page.waitForNavigation({ waitUntil: 'networkidle2', timeout: 6000 });
 
         const domains = await page.$$eval('td.second a', els =>
           els.map(td => td.getAttribute('href'))
@@ -132,9 +150,8 @@ module.exports = async function(accounts, ns1, ns2) {
             })
           );
       } catch (error) {
-        console.log(`Warning: We couldn't access ${account[0]} : ${account[1]} We'll pass!`);
+        console.log(`skiping ${account[0]} : ${account[1]}, Because of error:`);
         console.log(error);
-        continue;
       }
     }
 

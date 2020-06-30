@@ -133,6 +133,7 @@ module.exports = async function(accounts, ns1, ns2) {
           );
       } catch (error) {
         console.log(`Warning: We couldn't access ${account[0]} : ${account[1]} We'll pass!`);
+        console.log(error);
         continue;
       }
     }

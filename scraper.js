@@ -1,27 +1,3 @@
-const puppeteer = require('puppeteer');
-const path = require('path');
-const fs = require('fs');
-const toCSV = require('objects-to-csv');
-
-const loginPage = 'https://my.freenom.com/clientarea.php?action=domains';
-const editPage = id => `https://my.freenom.com/clientarea.php?action=domaindetails&id=${id}#tab3`;
-
-async function wait(time = 3500) {
-  await new Promise((res, rej) => setTimeout(res, time));
-}
-
-async function type(page, selector, text, retried = 0) {
-  try {
-    await page.waitForSelector(selector, { timeout: 5000 });
-    await page.click(selector.trim() + ':not([disabled])', { clickCount: 3 });
-    await page.type(selector, text);
-  } catch {
-    if (retried === 1) return;
-    console.log(`couldn't type ${text} into ${selector}, trying once again...`);
-    await type(page, selector, text, 1);
-  }
-}
-
 function writeFilePromise(filename, data, options = 'utf8') {
   return new Promise((resolve, reject) => {
     fs.writeFile(filename, data, options, error => {
